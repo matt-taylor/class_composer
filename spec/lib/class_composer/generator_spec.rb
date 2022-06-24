@@ -19,7 +19,19 @@ RSpec.describe ClassComposer::Generator do
     context "with duplicate composer name" do
     end
 
-    context "with array" do
+    context "with multiple allowed types" do
     end
+
+    context "when Array passed in" do
+    end
+  end
+
+  describe "getter methods" do
+  end
+
+  describe "setter methods" do
+  end
+
+  describe "array setter methods" do
   end
 end
