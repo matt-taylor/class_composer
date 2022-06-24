@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ -z "$GEMFURY_TOKEN" ]; then
+    echo 'Environment variable GEMFURY_TOKEN must be specified. Aborting.'
+    exit 1
+fi
+
+VERSION=$(make version)
+PACKAGE=class_composer-${VERSION}.gem
+
+# Build and publish to Gemfury
+gem build class_composer.gemspec
