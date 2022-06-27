@@ -60,10 +60,14 @@ module ClassComposer
             instance_variable_set(COMPOSER_ASSIGNED_ATTR_NAME.(name), true)
             instance_variable_set(:"@#{name}", value)
           else
-            value.pop if value.is_a?(Array) # we assigned the array value...pop it from the array
             message = ["#{self.class}.#{name} failed validation. #{name} is expected to be #{allowed}."]
 
             message << (params[:invalid_message].is_a?(Proc) ? params[:invalid_message].(value) : params[:invalid_message].to_s)
+            if value.is_a?(Array)
+              # we assigned the array value...pop it from the array
+              # must be done after the message is created so that failing value can get passed appropriately
+              value.pop
+            end
             raise validation_error_klass, message.compact.join(" ")
           end
 
@@ -114,7 +118,7 @@ module ClassComposer
               end
             # order is important -- Do not run validator if it is the default object
             # Default object will likely raise an error if there is a custom validator
-            allowed.include?(ClassComposer::DefaultObject) && value == ClassComposer::DefaultObject || (allow && validator.(value))
+            (allowed.include?(ClassComposer::DefaultObject) && value == ClassComposer::DefaultObject) || (allow && validator.(value))
           rescue StandardError => e
             raise error_klass, "#{e} occured during validation for value [#{value}]. Check custom validator for #{name}"
           end

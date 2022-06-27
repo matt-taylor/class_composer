@@ -181,10 +181,103 @@ RSpec.describe ClassComposer::Generator do
         expect { klass }.to raise_error(ClassComposer::Error, /NoMethodError occured during validation for value/)
       end
     end
+  end
 
-    describe "array setter methods" do
+  describe "array setter methods" do
+    let(:instance) { klass.new }
+    before { instance.array = [] }
+
+
+    context "with << method" do
+      let(:klass) do
+        class WithArray1
+          include ClassComposer::Generator
+
+          add_composer :array, allowed: Array, default: [], validator: ->(val) { val.sum < 40 }, invalid_message: ->(val) { "Array sum of [#{val.sum}] must be less than 40" }
+        end
+        WithArray1
+      end
+
+      it do
+        instance.array << 10
+
+        expect(instance.array).to eq([10])
+      end
+
+      context "when validator raises" do
+        let(:klass) do
+          class WithArray2
+            include ClassComposer::Generator
+
+            add_composer :array, allowed: Array, default: [], validator: ->(val) { val.sum < 40 }, invalid_message: ->(val) { "Array sum of [#{val.sum}] must be less than 40" }
+          end
+          WithArray2
+        end
+
+        it do
+          instance.array << 10
+          instance.array << 10
+
+          expect { instance.array << 30 }.to raise_error(ClassComposer::ValidatorError, /failed validation/)
+
+          expect(instance.array).to eq([10, 10])
+        end
+      end
     end
 
-    context "when "
+    context "with = method" do
+      let(:klass) do
+        class WithArray3
+          include ClassComposer::Generator
+
+          add_composer :array, allowed: Array, default: [], validator: ->(val) { val.sum < 40 }, invalid_message: ->(val) { "Array sum of [#{val.sum}] must be less than 40" }
+        end
+        WithArray3
+      end
+      it do
+        instance.array = [10, 27]
+
+        expect(instance.array).to eq([10, 27])
+      end
+
+      context "when validator raises" do
+        let(:klass) do
+          class WithArray4
+            include ClassComposer::Generator
+
+            add_composer :array, allowed: Array, default: [], validator: ->(val) { val.sum < 40 }, invalid_message: ->(val) { "Array sum of [#{val.sum}] must be less than 40" }
+          end
+          WithArray4
+        end
+
+        it do
+          instance.array = [34]
+          expect { instance.array = [10, 37] }.to raise_error(ClassComposer::ValidatorError, /failed validation/)
+
+
+          expect(instance.array).to eq([34])
+        end
+      end
+
+      context "when retrieving default array" do
+        let(:instance) { klass.new }
+        let(:klass) do
+          class WithArray5
+            include ClassComposer::Generator
+
+            add_composer :array, allowed: Array, default: [], validator: ->(val) { val.sum < 40 }, invalid_message: ->(val) { "Array sum of [#{val.sum}] must be less than 40" }
+          end
+          WithArray5
+        end
+
+        it do
+          expect(instance.array).to eq([])
+
+          instance.array << 11
+
+          expect(instance.array).to eq([11])
+        end
+      end
+    end
   end
 end
