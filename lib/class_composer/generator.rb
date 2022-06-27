@@ -27,8 +27,8 @@ module ClassComposer
           raise validation_error_klass, "Default value [#{default}] for #{self.class}.#{name} is not valid"
         end
 
-        if self.class.instance_methods.include?(name.to_sym)
-          raise error_klass, "#{name} is already defined. Ensure composer names are all uniq and do not class with class instance methods"
+        if instance_methods.include?(name.to_sym)
+          raise error_klass, "[#{name}] is already defined. Ensure composer names are all uniq and do not class with class instance methods"
         end
       end
 
