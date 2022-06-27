@@ -2,6 +2,21 @@
 
 RSpec.describe ClassComposer::Generator do
   describe ".add_composer" do
+    context "when validator is not a proc" do
+      let(:klass) do
+        class InvalidProc
+          include ClassComposer::Generator
+
+          add_composer :status, allowed: Integer, default: 35, validator: :not_a_proc, invalid_message: -> (val) { "#{val} is less than 3" }
+        end
+        InvalidProc
+      end
+
+      it "raises" do
+        expect { klass }.to raise_error(::ClassComposer::Error, /Expected validator to be a Proc/)
+      end
+    end
+
     context "when default value is invalid" do
       let(:klass) do
         class Invalid
@@ -89,6 +104,21 @@ RSpec.describe ClassComposer::Generator do
         expect { klass }.to_not raise_error
       end
     end
+
+    context "with no default value" do
+      let(:klass) do
+        class ComposerWODefault
+          include ClassComposer::Generator
+
+          add_composer :status, allowed: [Integer, String]
+        end
+        ComposerWODefault
+      end
+
+      it "does not raise" do
+        expect { klass }.to_not raise_error
+      end
+    end
   end
 
   describe "getter methods" do
@@ -130,14 +160,31 @@ RSpec.describe ClassComposer::Generator do
       end
 
       it "returns correct value" do
-        expadd falsey behaviorect(instance.status).to eq(100_000)
+        expect(instance.status).to eq(100_000)
       end
     end
   end
 
   describe "setter methods" do
-  end
+    context "when custom validator raises" do
+      let(:klass) do
+        class ValidatorRaiseError
+          include ClassComposer::Generator
 
-  describe "array setter methods" do
+          add_composer :status, allowed: Integer, default: 35, validator: ->(val) { raise NoMethodError }, invalid_message: -> (val) { "#{val} is less than 3" }, validation_error_klass: NoMethodError
+
+        end
+        ValidatorRaiseError
+      end
+
+      it "raises" do
+        expect { klass }.to raise_error(ClassComposer::Error, /NoMethodError occured during validation for value/)
+      end
+    end
+
+    describe "array setter methods" do
+    end
+
+    context "when "
   end
 end

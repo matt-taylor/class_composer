@@ -112,7 +112,9 @@ module ClassComposer
               else
                 allowed == value.class
               end
-            (allow && validator.(value)) || allowed.include?(ClassComposer::DefaultObject) && value == ClassComposer::DefaultObject
+            # order is important -- Do not run validator if it is the default object
+            # Default object will likely raise an error if there is a custom validator
+            allowed.include?(ClassComposer::DefaultObject) && value == ClassComposer::DefaultObject || (allow && validator.(value))
           rescue StandardError => e
             raise error_klass, "#{e} occured during validation for value [#{value}]. Check custom validator for #{name}"
           end
