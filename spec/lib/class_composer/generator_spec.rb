@@ -1,17 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe ClassComposer::Generator do
-  let(:instance) { klass.new }
-  let(:klass) do
-    class Klass
-      include ClassComposer::Generator
-
-      add_composer :status, allowed: Integer, default: 35, validator: ->(val) { val > 3 }, invalid_message: -> (val) { "#{val} is less than 3" }
-      add_composer :array, allowed: Array, default: [], validator: ->(val) { val.length < 5 && val.sum < 40 }, invalid_message: -> (val) { "Array length must be less than 5. And sum must be less than 40" }
-    end
-    Klass
-  end
-
   describe ".add_composer" do
     context "when default value is invalid" do
       let(:klass) do
@@ -103,6 +92,47 @@ RSpec.describe ClassComposer::Generator do
   end
 
   describe "getter methods" do
+    let(:klassWithDefault) do
+      class KlassWDefault
+        include ClassComposer::Generator
+
+        add_composer :status, allowed: Integer, default: 1_000
+      end
+      KlassWDefault
+    end
+    let(:klassWithoutDefault) do
+      class KlassWODefault
+        include ClassComposer::Generator
+
+        add_composer :status, allowed: Integer
+      end
+      KlassWODefault
+    end
+
+    it "gets default value" do
+      expect(klassWithDefault.new.status).to eq(1_000)
+    end
+
+    it "gets nil value" do
+      expect(klassWithoutDefault.new.status).to eq(nil)
+    end
+
+    context "when value has been set" do
+      before { instance.status = 100_000 }
+      let(:instance) { klassss.new }
+      let(:klassss) do
+        class Klassss
+          include ClassComposer::Generator
+
+          add_composer :status, allowed: Integer
+        end
+        Klassss
+      end
+
+      it "returns correct value" do
+        expadd falsey behaviorect(instance.status).to eq(100_000)
+      end
+    end
   end
 
   describe "setter methods" do

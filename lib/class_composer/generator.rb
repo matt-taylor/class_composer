@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "class_composer/version"
+require "class_composer/default_object"
 
 module ClassComposer
   module Generator
@@ -13,7 +13,20 @@ module ClassComposer
       COMPOSER_ASSIGNED_ATTR_NAME = ->(name) { :"@__composer_#{name}_value_assigned__" }
       COMPOSER_ASSIGNED_ARRAY_METHODS = ->(name) { :"@__composer_#{name}_array_methods_set__" }
 
-      def add_composer(name, allowed:, default: nil, accessor: true, validator: ->(_) { true }, validation_error_klass: ::ClassComposer::ValidatorError, error_klass: ::ClassComposer::Error,**params)
+      def add_composer(name, allowed:, accessor: true, validator: ->(_) { true }, validation_error_klass: ::ClassComposer::ValidatorError, error_klass: ::ClassComposer::Error,**params)
+        default =
+          if params.has_key?(:default)
+            params[:default]
+          else
+            if allowed.is_a?(Array)
+              allowed << ClassComposer::DefaultObject
+            else
+              allowed = [allowed, ClassComposer::DefaultObject]
+            end
+            ClassComposer::DefaultObject
+          end
+
+        allowed.include?(ClassComposer::DefaultObject)
         validate_proc = __composer_validator_proc__(validator: validator, allowed: allowed, name: name, error_klass: error_klass)
         __composer_validate_options__!(name: name, validate_proc: validate_proc, default: default, validation_error_klass: validation_error_klass, error_klass: error_klass)
 
@@ -79,7 +92,8 @@ module ClassComposer
             end
             default.instance_variable_set(COMPOSER_ASSIGNED_ARRAY_METHODS.(name), true)
           end
-          default
+
+          default == ClassComposer::DefaultObject ? ClassComposer::DefaultObject.value : default
         end
       end
 
@@ -98,7 +112,7 @@ module ClassComposer
               else
                 allowed == value.class
               end
-            allow && validator.(value)
+            (allow && validator.(value)) || allowed.include?(ClassComposer::DefaultObject) && value == ClassComposer::DefaultObject
           rescue StandardError => e
             raise error_klass, "#{e} occured during validation for value [#{value}]. Check custom validator for #{name}"
           end
