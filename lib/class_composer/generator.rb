@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "class_composer/version"
+require "class_composer/default_object"
 
 module ClassComposer
   module Generator
@@ -13,22 +13,35 @@ module ClassComposer
       COMPOSER_ASSIGNED_ATTR_NAME = ->(name) { :"@__composer_#{name}_value_assigned__" }
       COMPOSER_ASSIGNED_ARRAY_METHODS = ->(name) { :"@__composer_#{name}_array_methods_set__" }
 
-      def add_composer(name, allowed:, default: nil, accessor: true, validator: ->(_) { true }, **params)
-        validate_proc = __composer_validator_proc__(validator: validator, allowed: allowed, name: name)
-        __composer_validate_options__!(name: name, validate_proc: validate_proc, default: default)
+      def add_composer(name, allowed:, accessor: true, validator: ->(_) { true }, validation_error_klass: ::ClassComposer::ValidatorError, error_klass: ::ClassComposer::Error,**params)
+        default =
+          if params.has_key?(:default)
+            params[:default]
+          else
+            if allowed.is_a?(Array)
+              allowed << ClassComposer::DefaultObject
+            else
+              allowed = [allowed, ClassComposer::DefaultObject]
+            end
+            ClassComposer::DefaultObject
+          end
+
+        allowed.include?(ClassComposer::DefaultObject)
+        validate_proc = __composer_validator_proc__(validator: validator, allowed: allowed, name: name, error_klass: error_klass)
+        __composer_validate_options__!(name: name, validate_proc: validate_proc, default: default, validation_error_klass: validation_error_klass, error_klass: error_klass)
 
         array_proc = __composer_array_proc__(name: name, validator: validator, allowed: allowed, params: params)
-        __composer_assignment__(name: name, params: params, validator: validate_proc, array_proc: array_proc)
+        __composer_assignment__(name: name, allowed: allowed, params: params, validator: validate_proc, array_proc: array_proc, validation_error_klass: validation_error_klass, error_klass: error_klass)
         __composer_retrieval__(name: name, default: default, array_proc: array_proc)
       end
 
-      def __composer_validate_options__!(name:, validate_proc:, default:)
+      def __composer_validate_options__!(name:, validate_proc:, default:, params: {}, validation_error_klass:, error_klass:)
         unless validate_proc.(default)
-          raise ClassComposer::ValidatorError, "Default value [#{default}] for #{self.class}.#{name} is not valid"
+          raise validation_error_klass, "Default value [#{default}] for #{self.class}.#{name} is not valid"
         end
 
-        if self.class.instance_methods.include?(name.to_sym)
-          raise ClassComposer::Error, "#{name} is already defined. Ensure composer names are all uniq and do not class with class instance methods"
+        if instance_methods.include?(name.to_sym)
+          raise error_klass, "[#{name}] is already defined. Ensure composer names are all uniq and do not class with class instance methods"
         end
       end
 
@@ -39,7 +52,7 @@ module ClassComposer
       end
 
       # create assignment method for the incoming name
-      def __composer_assignment__(name:, params:, validator:, array_proc:)
+      def __composer_assignment__(name:, params:, allowed:, validator:, array_proc:, validation_error_klass:, error_klass:)
         define_method(:"#{name}=") do |value|
           is_valid = validator.(value)
 
@@ -47,11 +60,15 @@ module ClassComposer
             instance_variable_set(COMPOSER_ASSIGNED_ATTR_NAME.(name), true)
             instance_variable_set(:"@#{name}", value)
           else
-            value.pop
-            message = ["#{self.class}.#{name} failed validation."]
+            message = ["#{self.class}.#{name} failed validation. #{name} is expected to be #{allowed}."]
 
             message << (params[:invalid_message].is_a?(Proc) ? params[:invalid_message].(value) : params[:invalid_message].to_s)
-            raise ClassComposer::ValidatorError, message.compact.join(" ")
+            if value.is_a?(Array)
+              # we assigned the array value...pop it from the array
+              # must be done after the message is created so that failing value can get passed appropriately
+              value.pop
+            end
+            raise validation_error_klass, message.compact.join(" ")
           end
 
           if value.is_a?(Array) && !value.instance_variable_get(COMPOSER_ASSIGNED_ARRAY_METHODS.(name))
@@ -79,14 +96,15 @@ module ClassComposer
             end
             default.instance_variable_set(COMPOSER_ASSIGNED_ARRAY_METHODS.(name), true)
           end
-          default
+
+          default == ClassComposer::DefaultObject ? ClassComposer::DefaultObject.value : default
         end
       end
 
       # create validator method for incoming name
-      def __composer_validator_proc__(validator:, allowed:, name:)
+      def __composer_validator_proc__(validator:, allowed:, name:, error_klass:)
         if validator && !validator.is_a?(Proc)
-          raise ClassComposer::Error, "Expected validator to be a Proc. Received [#{validator.class}]"
+          raise error_klass, "Expected validator to be a Proc. Received [#{validator.class}]"
         end
 
         # Proc will validate the entire attribute -- Full assignment must occur before validate is called
@@ -98,9 +116,11 @@ module ClassComposer
               else
                 allowed == value.class
               end
-            allow && validator.(value)
+            # order is important -- Do not run validator if it is the default object
+            # Default object will likely raise an error if there is a custom validator
+            (allowed.include?(ClassComposer::DefaultObject) && value == ClassComposer::DefaultObject) || (allow && validator.(value))
           rescue StandardError => e
-            raise ClassComposer::Error, "#{e} occured during validation for value [#{value}]. Check custom validator for #{name}"
+            raise error_klass, "#{e} occured during validation for value [#{value}]. Check custom validator for #{name}"
           end
         end
       end

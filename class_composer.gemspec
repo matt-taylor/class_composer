@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Matt Taylor"]
   spec.email   = ["mattius.taylor@gmail.com"]
 
-  spec.summary     = "Describe the gem here"
-  spec.description = "Describe the gem here"
+  spec.summary     = "Easily compose a class via inline code or passed in YAML config. Add instance attributes with custom validations that will DRY up your code"
+  spec.description = "Compose configurations for any class."
   spec.homepage    = "https://github.com/matt-taylor/class_composer"
   spec.license     = "MIT"
 

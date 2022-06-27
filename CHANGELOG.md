@@ -1,26 +1,15 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+### Versioning
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+**Major:** x - Major Releases with new features that constitute a breaking change
 
-## [Unreleased]
+**Minor:** x.x - Minor changes or features added which are backwords compatible
 
-## [0.0.1] - 2022-06-18
+**Patch:** x.x.x - Patch Updates
 
-### Added
-- New feature 1
-- New feature 2
+# Release Notes
 
-### Changed
-- Changed feature 1
-- Changed feature 2
-
-### Removed
-- Removed feature 1
-- Removed feature 2
-
-### Fixed
-- Bug fix 1
-- Bug fix 2
+|  Date | Version  | Description  |
+|---|---|---|
+| June 2022  | v1.0.0  | Initial launch of Composer
