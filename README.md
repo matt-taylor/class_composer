@@ -68,7 +68,6 @@ instance.fibbonacci = [0,13,34]
 => [0, 13, 34]
 instance.fibbonacci
 => [0, 13, 34]
-
 ```
 
 ### KWarg Options
