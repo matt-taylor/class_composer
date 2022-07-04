@@ -93,6 +93,7 @@ invalid_message
 
 ### Advanced
 
+#### Usage with Array as Allowed
 Arrays are treated special with the composed methods. `ClassComposer` will inject a custom method `<<` so that it can be treated as a regular array with the added benefit of validation still occuring.
 
 ```ruby
@@ -112,6 +113,26 @@ ClassComposer::ValidatorError: CustomArrayClass.array failed validation. array i
 
 ```
 
+#### Usage with complex configuration
+
+```ruby
+class ComplexDependencies
+  include ClassComposer::Generator
+
+  add_composer :use_scope, allowed: [TrueClass, FalseClass], default: false
+  add_scope :scope, allowed: Proc
+
+  def scope
+    # skip unless use_scope is explicitly set
+    return -> {} unless @use_scope
+
+    # use passed in scope if present
+    # Otherwise default to blank default
+    @scope || -> {}
+  end
+end
+```
+Adding custom methods allows for higher level of complexity. The methods can be used and accessed just as an `attr_accessor` would.
 
 ## Development
 
