@@ -120,7 +120,7 @@ class ComplexDependencies
   include ClassComposer::Generator
 
   add_composer :use_scope, allowed: [TrueClass, FalseClass], default: false
-  add_scope :scope, allowed: Proc
+  add_composer :scope, allowed: Proc
 
   def scope
     # skip unless use_scope is explicitly set
