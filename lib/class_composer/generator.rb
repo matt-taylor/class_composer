@@ -13,7 +13,7 @@ module ClassComposer
       COMPOSER_ASSIGNED_ATTR_NAME = ->(name) { :"@__composer_#{name}_value_assigned__" }
       COMPOSER_ASSIGNED_ARRAY_METHODS = ->(name) { :"@__composer_#{name}_array_methods_set__" }
 
-      def add_composer(name, allowed:, accessor: true, validator: ->(_) { true }, validation_error_klass: ::ClassComposer::ValidatorError, error_klass: ::ClassComposer::Error,**params)
+      def add_composer(name, allowed:, accessor: true, validator: ->(_) { true }, validation_error_klass: ::ClassComposer::ValidatorError, error_klass: ::ClassComposer::Error, **params)
         default =
           if params.has_key?(:default)
             params[:default]
