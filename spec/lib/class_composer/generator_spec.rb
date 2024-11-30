@@ -187,7 +187,6 @@ RSpec.describe ClassComposer::Generator do
     let(:instance) { klass.new }
     before { instance.array = [] }
 
-
     context "with << method" do
       let(:klass) do
         class WithArray1
