@@ -12,10 +12,21 @@ require 'class_composer'
 require 'faker'
 require 'pry'
 
+module HelperMethods
+  def composer_new_klass
+    klass = Class.new
+    klass.include ClassComposer::Generator
+
+    klass
+  end
+end
+
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
+
+  config.include HelperMethods
 
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
