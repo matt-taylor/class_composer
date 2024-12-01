@@ -31,9 +31,10 @@ module ClassComposer
 
       stringified += flattened_config.join("\n")
       stringified += "\nend"
-
-      File.write(Rails.root.join("config_file.rb"), stringified)
+      stringified
     end
+
+    private
 
     def generate(mapping:, space_count:, demeters_deep:)
       mapping.map do |key, metadata|
