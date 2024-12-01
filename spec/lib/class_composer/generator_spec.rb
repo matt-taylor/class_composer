@@ -164,7 +164,7 @@ RSpec.describe ClassComposer::Generator do
         before { instance.class_composer_freeze_objects!(&frozen_with) }
 
         context "when allowed to get set" do
-          let(:frozen_with) { -> (key) { Kernel.warn("received"); true } }
+          let(:frozen_with) { -> (instance, key) { Kernel.warn("received"); true } }
 
           it do
             is_expected.to eq(true)
@@ -178,7 +178,7 @@ RSpec.describe ClassComposer::Generator do
         end
 
         context "when not allowed to get set" do
-          let(:frozen_with) { -> (key) { Kernel.warn("received"); false } }
+          let(:frozen_with) { -> (instance, key) { Kernel.warn("received"); false } }
 
           it do
             is_expected.to eq(false)

@@ -23,7 +23,7 @@ module ClassComposer
         # When frozen is a proc, we let the user decide how to handle
         # The return value decides if the value can be changed or not
         if Proc === @class_composer_frozen
-          return @class_composer_frozen.(key)
+          return @class_composer_frozen.(self, key)
         end
 
         msg = "#{self.class} instance methods are frozen. Attempted to change variable [#{key}]."
