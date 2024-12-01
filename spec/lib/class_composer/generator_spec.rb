@@ -369,7 +369,6 @@ RSpec.describe ClassComposer::Generator do
     context "with custom validator" do
       let(:validator) { ->(val) { val < 50 } }
 
-
       context "with custom message" do
         let(:invalid_message) { ->(val) { "#{val} must be less than 50" } }
       end
