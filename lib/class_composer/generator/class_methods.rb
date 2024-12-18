@@ -73,7 +73,7 @@ module ClassComposer
         __composer_retrieval__(name: name, allowed: allowed, default: default, array_proc: array_proc, params: params, validator: validate_proc, validation_error_klass: validation_error_klass)
 
         # Add to mapping
-        __add_to_composer_mapping__(name: name, default: default, allowed: allowed, desc: desc, blocking_attributes: blocking_attributes, default_shown: default_shown)
+        __add_to_composer_mapping__(name: name, default: default, allowed: allowed, desc: desc, blocking_attributes: blocking_attributes, default_shown: default_shown, dynamic_default: params[:dynamic_default])
       end
 
       def composer_mapping
@@ -86,7 +86,7 @@ module ClassComposer
         @composer_generate_config.execute(wrapping:, require_file:, space_count:)
       end
 
-      def __add_to_composer_mapping__(name:, default:, allowed:, desc:, blocking_attributes:, default_shown: nil)
+      def __add_to_composer_mapping__(name:, default:, allowed:, desc:, blocking_attributes:, default_shown: nil, dynamic_default: nil)
         children = Array(allowed).select { _1.include?(ClassComposer::Generator) }.map do |allowed_class|
           allowed_class.composer_mapping
         end
@@ -94,6 +94,7 @@ module ClassComposer
         composer_mapping[name] = {
           desc: desc,
           children: children.empty? ? nil : children,
+          dynamic_default: dynamic_default,
           default_shown: default_shown,
           default: (default.to_s.start_with?("#<") ? default.class : default),
           blocking_attributes: blocking_attributes,

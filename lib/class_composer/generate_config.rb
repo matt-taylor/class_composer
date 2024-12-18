@@ -101,10 +101,14 @@ module ClassComposer
 
       if metadata[:default_shown]
          default = metadata[:default_shown]
+      elsif metadata[:dynamic_default]
+        if Symbol === metadata[:dynamic_default]
+          default = concat_demeter_with_key(metadata[:dynamic_default], demeters_deep)
+        else
+          default = " # Proc provided for :dynamic_default parameter. :default_shown parameter not provided"
+        end
       elsif metadata[:allowed].include?(String)
         default = "\"#{metadata[:default]}\""
-      elsif Symbol === metadata[:default]
-         default = metadata[:default].inspect
       else
         default = custom_case(metadata[:default])
       end
@@ -119,6 +123,8 @@ module ClassComposer
 
     def custom_case(default)
       case default
+      when Symbol
+        default.inspect
       when (ActiveSupport::Duration rescue NilClass)
         default.inspect.gsub(" ", ".")
       else
