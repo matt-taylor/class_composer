@@ -10,6 +10,11 @@
 
 # Release Notes
 
+## v2.1.0 (Dec 2024)
+- Default Dynamic Configuration -- Allow config options to be defaulted to other config variables. Ability to provide a Symbol of an existing `composer` or a Proc to custom define from anything in the application
+- Update how default_shown works when generating the config
+- Extract `class_methods` and `instance_methods` to their own files
+
 ## v2.0.0 (Nov 2024)
 - Minimum Ruby Version bumped to v3.1
 - Initializer File Generator

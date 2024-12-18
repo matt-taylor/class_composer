@@ -39,6 +39,21 @@ add_composer :status, allowed: Symbol, default: :different_default
 add_composer :status, allowed: Symbol, default: "This type does not match Symbol. This default value will raise error"
 ```
 
+### Dynamic Default
+- Required: False
+- Description: This option allows you to set a dynamic default composed of other `add_composer` values. The `dynamic_default` is lazy loaded.
+- Type: Expected value to be a Symbol mapping to another `add_composer` method or a Proc that takes an instance as an argument.
+- Note: When using `dynamic_default`, validations will lazily get run on retrieval. This means that you could have a runtime error if the dynamic value is not of the correct `allowed` type.
+
+Examples
+```ruby
+add_composer :app_name, allowed: Symbol, default: "My Cool App Name"
+
+add_composer :app_name_comms, allowed: String, dynamic_default: :app_name
+
+add_composer :app_name_website, allowed: String, dynamic_default: ->(instance) { "#{instance.app_name} + #{instance.app_name_comms}" }
+```
+
 ### Description
 - Required: False (Recommend)
 - Description: This option provides a human readable description of what the current configuration option does. This value is useful when [Generating an Initializer](generating_initializer.md)

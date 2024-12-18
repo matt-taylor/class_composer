@@ -57,7 +57,6 @@ module ClassComposer
           children.each do |child|
             children_config += generate(mapping: child, space_count:, demeters_deep: config_prepend)
           end
-          # binding.pry
 
           children_config.flatten(1)
         else
@@ -100,10 +99,18 @@ module ClassComposer
     def spec(key:, metadata:, space_count:, demeters_deep:)
       config = concat_demeter_with_key(key, demeters_deep)
 
-      if metadata[:allowed].include?(String)
+      if metadata[:default_shown]
+         default = metadata[:default_shown]
+      elsif metadata[:dynamic_default]
+        if Symbol === metadata[:dynamic_default]
+          default = concat_demeter_with_key(metadata[:dynamic_default], demeters_deep)
+        else
+          default = " # Proc provided for :dynamic_default parameter. :default_shown parameter not provided"
+        end
+      elsif metadata[:allowed].include?(String)
         default = "\"#{metadata[:default]}\""
       else
-        default = metadata[:default]
+        default = custom_case(metadata[:default])
       end
       arr = []
 
@@ -112,6 +119,17 @@ module ClassComposer
       arr << [""]
 
       arr
+    end
+
+    def custom_case(default)
+      case default
+      when Symbol
+        default.inspect
+      when (ActiveSupport::Duration rescue NilClass)
+        default.inspect.gsub(" ", ".")
+      else
+        default
+      end
     end
 
     def prepending(space_count)
