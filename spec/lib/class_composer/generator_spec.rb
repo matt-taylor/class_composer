@@ -1,5 +1,6 @@
 RSpec.describe ClassComposer::Generator do
-  let(:name) {  Faker::Lorem.word }
+  let(:name) {  Faker::Lorem.unique.word }
+  let(:name2) {  Faker::Lorem.unique.word }
   let(:allowed) { String }
   let(:klass) { composer_new_klass }
 
@@ -78,6 +79,30 @@ RSpec.describe ClassComposer::Generator do
   end
 
   describe ".add_composer (Class level)" do
+    context "with default and dynamic_default" do
+      it do
+        expect do
+          klass.add_composer(name, allowed:, default: "true", dynamic_default: :assigned)
+        end.to raise_error(ClassComposer::Error, /had both the `:default` and `:dynamic_default`/)
+      end
+    end
+
+    context "with incorrect dynamic_default type" do
+      it do
+        expect do
+          klass.add_composer(name, allowed:, dynamic_default: "assigned")
+        end.to raise_error(ClassComposer::Error, /Expected value to be a Symbol mapped to a composer element or a Proc/)
+      end
+    end
+
+    context "when dynamic_default Symbol is not defined" do
+      it do
+        expect do
+          klass.add_composer(name, allowed:, dynamic_default: :does_not_exist)
+        end.to raise_error(ClassComposer::Error, /Please ensure that all dynamic_default's are defined/)
+      end
+    end
+
     context "with duplicate name" do
       it do
         klass.add_composer(name, allowed:)
@@ -143,8 +168,6 @@ RSpec.describe ClassComposer::Generator do
         end.to_not raise_error
       end
     end
-
-
 
     it "defines instance methods" do
       klass.add_composer(name, allowed:)
@@ -366,6 +389,42 @@ RSpec.describe ClassComposer::Generator do
   end
 
   describe "* Getter Methods * (Instance Level)" do
+    context "with dynamic_default" do
+      let(:instance) { klass.new }
+      before do
+        klass.add_composer(name2.to_sym, allowed:, default: value)
+        klass.add_composer(name.to_sym, allowed:, dynamic_default:)
+      end
+      let(:value) { "this is a dynamically assigned value from anything" }
+
+      context "with proc" do
+        let(:dynamic_default) { ->(_instance) { value } }
+
+        it "gets value correctly" do
+          expect(instance.method(:"#{name}").()).to eq(value)
+        end
+
+        context "when default uses instance" do
+          let(:dynamic_default) { ->(k_instance) { k_instance.method(:"#{name2}").() } }
+
+          it "gets value correctly" do
+            expect(instance.method(:"#{name}").()).to eq(value)
+          end
+        end
+
+        context "when invalid option" do
+        end
+      end
+
+      context "with symbol" do
+        let(:dynamic_default) { name2.to_sym }
+
+        it "gets value correctly" do
+          expect(instance.method(:"#{name}").()).to eq(value)
+        end
+      end
+    end
+
     context "with custom validator" do
       let(:validator) { ->(val) { val < 50 } }
 
