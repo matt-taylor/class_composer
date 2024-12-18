@@ -6,5 +6,4 @@ require "class_composer/generator"
 module ClassComposer
   class Error < StandardError; end
   class ValidatorError < Error; end
-  # Your code goes here...
 end

@@ -28,7 +28,7 @@ end
 class AppConfiguration
   include ClassComposer::Generator
 
-  add_composer_blocking :login, composer_class: LoginStrategy, desc: "Login Strategy for my Application"
+  add_composer :login, allowed: LoginStrategy, default: LoginStrategy.new, desc: "Login Strategy for my Application"
 
   add_composer_blocking :lockable, composer_class: LockableStrategy, enable_attr: :enable, desc: "Lock Strategy for my Application. By default this is disabled"
 end
